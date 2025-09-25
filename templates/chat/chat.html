@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}채팅 - ChatGPT Clone{% endblock %}
+
+{% block content %}
+<div class="container-fluid h-100 p-0">
+    <div class="row h-100 g-0">
+        <!-- 사이드바 -->
+        <div class="col-md-3 bg-secondary" style="max-width: 260px; min-width: 260px;">
+            <div class="d-flex flex-column h-100">
+                <!-- 헤더 -->
+                <div class="p-3 border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-comments"></i> ChatGPT Clone
+                    </h5>
+                </div>
+
+                <!-- 새 채팅 버튼 -->
+                <div class="p-3 border-bottom">
+                    <a href="{% url 'chat:new_chat' %}" class="btn btn-outline-light w-100">
+                        <i class="fas fa-plus"></i> 새 대화
+                    </a>
+                </div>
+
+                <!-- 대화 목록 -->
+                <div class="flex-grow-1 overflow-auto p-2">
+                    <div id="conversation-list">
+                        {% for conv in conversations %}
+                        <div class="conversation-item mb-2 p-2 rounded {% if conversation and conv.id == conversation.id %}bg-primary{% else %}bg-dark{% endif %}"
+                             data-conversation-id="{{ conv.id }}"
+                             style="cursor: pointer;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-truncate flex-grow-1" title="{{ conv.title }}">
+                                    {{ conv.title|truncatechars:30 }}
+                                </div>
+                                <small class="text-muted ms-2">
+                                    {{ conv.updated_at|date:"m/d" }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- 사용자 정보 -->
+                <div class="p-3 border-top">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-user"></i> {{ user.username }}</span>
+                        <a href="{% url 'chat:logout' %}" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 메인 채팅 영역 -->
+        <div class="col flex-grow-1">
+            <div class="d-flex flex-column h-100">
+                <!-- 메시지 영역 -->
+                <div class="flex-grow-1 overflow-auto p-3" id="messages-container" style="min-height: 0;">
+                    <div id="messages">
+                        {% if conversation %}
+                            {% for message in messages %}
+                            <div class="message-wrapper mb-3">
+                                {% if message.role == 'user' %}
+                                <div class="d-flex justify-content-end">
+                                    <div class="message user-message bg-primary text-white p-3 rounded-3" style="max-width: 80%;">
+                                        <div class="message-content">{{ message.content|linebreaks }}</div>
+                                        <small class="message-time text-light opacity-75">
+                                            {{ message.created_at|date:"H:i" }}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="d-flex justify-content-start">
+                                    <div class="message ai-message bg-dark text-white p-3 rounded-3" style="max-width: 80%;">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fas fa-robot text-info me-2"></i>
+                                            <strong>AI Assistant</strong>
+                                        </div>
+                                        <div class="message-content">{{ message.content|linebreaks }}</div>
+                                        <small class="message-time text-light opacity-75">
+                                            {{ message.created_at|date:"H:i" }}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                        <div class="text-center text-muted h-100 d-flex align-items-center justify-content-center">
+                            <div>
+                                <i class="fas fa-comments fa-3x mb-3"></i>
+                                <h4>새로운 대화를 시작해보세요!</h4>
+                                <p>무엇이든 물어보세요.</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 입력 영역 -->
+                <div class="p-3 border-top bg-secondary">
+                    <form id="message-form" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <div class="flex-grow-1">
+                            <textarea
+                                id="message-input"
+                                class="form-control bg-dark text-white border-secondary"
+                                placeholder="메시지를 입력하세요..."
+                                rows="1"
+                                style="resize: none; max-height: 120px;"
+                            ></textarea>
+                        </div>
+                        <button type="submit" id="send-button" class="btn btn-primary px-3">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                    <small class="text-muted d-block mt-1">
+                        Enter로 전송, Shift+Enter로 줄바꿈
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 로딩 모달 -->
+<div class="modal fade" id="loading-modal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <div>AI가 응답을 생성 중입니다...</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const currentConversationId = {% if conversation %}{{ conversation.id }}{% else %}null{% endif %};
+</script>
+<script src="{% static 'js/chat.js' %}"></script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    html, body {
+        height: 100%;
+    }
+
+    .message-content {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .conversation-item:hover {
+        background-color: rgba(108, 117, 125, 0.3) !important;
+    }
+
+    .conversation-item.bg-primary:hover {
+        background-color: rgba(13, 110, 253, 0.8) !important;
+    }
+
+    #message-input {
+        background-color: #495057 !important;
+        border: 1px solid #6c757d !important;
+        color: white !important;
+    }
+
+    #message-input:focus {
+        background-color: #495057 !important;
+        border-color: #0d6efd !important;
+        color: white !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+    }
+
+    .user-message {
+        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+    }
+
+    .ai-message {
+        background: linear-gradient(135deg, #343a40, #495057);
+        border: 1px solid #495057;
+    }
+
+    #messages-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    #messages-container::-webkit-scrollbar-track {
+        background: #495057;
+    }
+
+    #messages-container::-webkit-scrollbar-thumb {
+        background: #6c757d;
+        border-radius: 3px;
+    }
+
+    #messages-container::-webkit-scrollbar-thumb:hover {
+        background: #adb5bd;
+    }
+</style>
+{% endblock %}

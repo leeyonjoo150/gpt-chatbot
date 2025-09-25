@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}회원가입 - ChatGPT Clone{% endblock %}
+
+{% block content %}
+<div class="container-fluid h-100">
+    <div class="row justify-content-center align-items-center h-100">
+        <div class="col-md-4">
+            <div class="card bg-secondary">
+                <div class="card-header text-center">
+                    <h3><i class="fas fa-user-plus"></i> 회원가입</h3>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="username" class="form-label">사용자명</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">비밀번호</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password_confirm" class="form-label">비밀번호 확인</label>
+                            <input type="password" class="form-control" id="password_confirm" name="password_confirm" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-user-plus"></i> 회원가입
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr>
+                    <div class="text-center">
+                        <p>이미 계정이 있으신가요? <a href="{% url 'chat:login' %}" class="text-primary">로그인</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    html, body {
+        height: 100%;
+    }
+    .card {
+        border: none;
+        border-radius: 15px;
+    }
+    .form-control {
+        background-color: #495057;
+        border: 1px solid #6c757d;
+        color: white;
+    }
+    .form-control:focus {
+        background-color: #495057;
+        border-color: #198754;
+        color: white;
+        box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+    }
+</style>
+{% endblock %}

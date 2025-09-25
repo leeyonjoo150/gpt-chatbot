@@ -1,0 +1,18 @@
+[
+  {
+    "role": "user",
+    "content": "오늘 날짜는?"
+  },
+  {
+    "role": "assistant",
+    "content": "오늘 날짜는 2023년 10월 3일입니다."
+  },
+  {
+    "role": "user",
+    "content": "미국 대통령은?"
+  },
+  {
+    "role": "assistant",
+    "content": "현재 미국 대통령은 조 바이든(Joe Biden)입니다. 그는 2021년 1월 20일에 취임했습니다."
+  }
+]
