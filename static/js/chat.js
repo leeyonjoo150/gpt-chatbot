@@ -224,3 +224,19 @@ function autoResizeTextarea(selector) {
         this.style.height = Math.min(this.scrollHeight, 120) + 'px';
     });
 }
+
+function showAlert(message, type = 'info') {
+    // 간단한 alert 구현 (Bootstrap toast 또는 다른 방식으로 개선 가능)
+    alert(message);
+}
+
+function scrollToBottom(element) {
+    element.scrollTop = element.scrollHeight;
+}
+
+function handleEnterKey(e, callback) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        callback();
+    }
+}
